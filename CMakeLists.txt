@@ -12,6 +12,10 @@ INCLUDE_DIRECTORIES(
     src/
 )
 
+find_package(PkgConfig REQUIRED)
+pkg_search_module(MLT REQUIRED mlt-framework)
+pkg_search_module(SDL2 REQUIRED SDL2)
+
 set(FRAMEWORK_SRC_FILES
     src/framework/mlt_frame.c
     src/framework/mlt_version.c
@@ -130,20 +134,17 @@ add_executable(melt ${MELT_SRC_FILES} )
 
 #add_library( ttvideoeditor SHARED ${TE_WRAPPER_SRC_FILES} )
 
-find_library( mlt-lib mlt )
-find_library( SDL2-lib SDL2 )
-
 target_include_directories( melt
 
             PUBLIC
 
-            /usr/local/include/mlt
-            /usr/local/include/SDL2
+            ${MLT_INCLUDE_DIRS}
+            ${SDL2_INCLUDE_DIRS}
 )
 
 target_link_libraries( melt
 
-            ${mlt-lib}
-            ${SDL2-lib}
+            ${MLT_LDFLAGS}
+            ${SDL2_LDFLAGS}
             )
 
