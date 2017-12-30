@@ -129,6 +129,13 @@ set(AVFORMAT_SRC_FILES
     src/modules/avformat//filter_swscale.c
 )
 
+set(SDL_SRC_FILES
+    src/modules/sdl//factory.c
+    src/modules/sdl//consumer_sdl_audio.c
+    src/modules/sdl//consumer_sdl2.c
+    src/modules/sdl//consumer_sdl_osx.m
+)
+
 set(MELT_SRC_FILES
     src/melt/melt.c
     src/melt/io.c
@@ -197,6 +204,26 @@ target_link_libraries(mltavformat
     ${SWSCALE_LDFLAGS}
 )
 
+add_library( mltsdl SHARED ${SDL_SRC_FILES} )
+
+set_target_properties(mltsdl PROPERTIES COMPILE_FLAGS
+
+    "-DARCH_X86_64 -Wall -DPIC   -O2 -pipe -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fPIC -ObjC -D_THREAD_SAFE -I/usr/local/include/SDL2   -c"
+)
+
+target_include_directories( mltsdl
+
+    PUBLIC
+
+    ${SDL2_INCLUDE_DIRS}
+)
+
+target_link_libraries(mltsdl
+
+    mlt
+    ${SDL2_LDFLAGS}
+)
+
 add_executable(melt ${MELT_SRC_FILES} )
 
 target_include_directories( melt
@@ -212,6 +239,7 @@ target_link_libraries( melt
             mlt++
             core
             mltavformat
+            mltsdl
             ${SDL2_LDFLAGS}
             )
 
