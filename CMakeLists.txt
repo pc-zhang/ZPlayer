@@ -145,14 +145,14 @@ add_library( mlt SHARED ${FRAMEWORK_SRC_FILES} )
 
 set_target_properties(mlt PROPERTIES COMPILE_FLAGS
 
-    "-DARCH_X86_64 -Wall -DPIC   -O2 -pipe -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fPIC  -DPREFIX_DATA=\"\\\"/usr/local/share/mlt\\\"\" -DPREFIX_LIB=\"\\\"/usr/local/lib/mlt\\\"\"   -c"
+    "-DARCH_X86_64 -Wall -DPIC -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fPIC  -DPREFIX_DATA=\"\\\"/usr/local/share/mlt\\\"\" -DPREFIX_LIB=\"\\\"/usr/local/lib/mlt\\\"\"   -c"
 )
 
 add_library( mlt++ SHARED ${MLTCPP_SRC_FILES} )
 
 set_target_properties(mlt++ PROPERTIES COMPILE_FLAGS
 
-    "-Wall -DPIC   -O2 -pipe -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -Wall -fPIC -I..  -DVERSION=\\\"6.5.0\\\" -fvisibility=hidden   -c"
+    "-Wall -DPIC -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -Wall -fPIC -I..  -DVERSION=\\\"6.5.0\\\" -fvisibility=hidden   -c"
 )
 
 target_link_libraries(mlt++
@@ -164,7 +164,7 @@ add_library( core SHARED ${CORE_SRC_FILES} )
 
 set_target_properties(core PROPERTIES COMPILE_FLAGS
 
-    "-DARCH_X86_64 -Wall -DPIC   -O2 -pipe -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fPIC   -c"
+    "-DARCH_X86_64 -Wall -DPIC -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fPIC   -c"
 )
 
 target_link_libraries(core
@@ -176,7 +176,7 @@ add_library( mltavformat SHARED ${AVFORMAT_SRC_FILES} )
 
 set_target_properties(mltavformat PROPERTIES COMPILE_FLAGS
 
-    "-DARCH_X86_64 -Wall -DPIC   -O2 -pipe -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fPIC -DAVDATADIR=\\\"/usr/local/Cellar/ffmpeg/3.4.1/share/ffmpeg/\\\" -I/usr/local/Cellar/ffmpeg/3.4.1/include -I/usr/local/Cellar/ffmpeg/3.4.1/include -I/usr/local/Cellar/ffmpeg/3.4.1/include -I/usr/local/Cellar/ffmpeg/3.4.1/include -I/usr/local/Cellar/ffmpeg/3.4.1/include -I/usr/local/Cellar/ffmpeg/3.4.1/include -DFILTERS -DCODECS -DAVDEVICE -DAVFILTER   -c"
+    "-DARCH_X86_64 -Wall -DPIC -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fPIC -DAVDATADIR=\\\"/usr/local/Cellar/ffmpeg/3.4.1/share/ffmpeg/\\\" -I/usr/local/Cellar/ffmpeg/3.4.1/include -I/usr/local/Cellar/ffmpeg/3.4.1/include -I/usr/local/Cellar/ffmpeg/3.4.1/include -I/usr/local/Cellar/ffmpeg/3.4.1/include -I/usr/local/Cellar/ffmpeg/3.4.1/include -I/usr/local/Cellar/ffmpeg/3.4.1/include -DFILTERS -DCODECS -DAVDEVICE -DAVFILTER   -c"
 )
 
 target_include_directories( mltavformat
@@ -208,7 +208,7 @@ add_library( mltsdl SHARED ${SDL_SRC_FILES} )
 
 set_target_properties(mltsdl PROPERTIES COMPILE_FLAGS
 
-    "-DARCH_X86_64 -Wall -DPIC   -O2 -pipe -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fPIC -ObjC -D_THREAD_SAFE -I/usr/local/include/SDL2   -c"
+    "-DARCH_X86_64 -Wall -DPIC -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fPIC -ObjC -D_THREAD_SAFE -I/usr/local/include/SDL2   -c"
 )
 
 target_include_directories( mltsdl
