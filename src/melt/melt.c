@@ -37,6 +37,8 @@
 
 #include "io.h"
 
+#define VERSION
+
 static mlt_producer melt = NULL;
 
 static void stop_handler(int signum)
