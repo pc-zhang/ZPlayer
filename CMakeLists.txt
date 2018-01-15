@@ -12,6 +12,7 @@ INCLUDE_DIRECTORIES(
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(SDL2 REQUIRED sdl2)
+pkg_search_module(XML2 REQUIRED libxml-2.0)
 pkg_search_module(AVCODEC REQUIRED libavcodec)
 pkg_search_module(AVFORMAT REQUIRED libavformat)
 pkg_search_module(AVUTIL REQUIRED libavutil)
@@ -136,6 +137,13 @@ set(SDL_SRC_FILES
     src/modules/sdl//consumer_sdl_osx.m
 )
 
+set(XML_SRC_FILES
+    src/modules/xml/consumer_xml.c
+    src/modules/xml/common.c
+    src/modules/xml/producer_xml.c
+    src/modules/xml/factory.c
+)
+
 set(MELT_SRC_FILES
     src/melt/melt.c
     src/melt/io.c
@@ -224,6 +232,22 @@ target_link_libraries(mltsdl
     ${SDL2_LDFLAGS}
 )
 
+add_library( mltxml SHARED ${XML_SRC_FILES} )
+
+set_target_properties(mltxml PROPERTIES COMPILE_FLAGS
+ "-DARCH_X86_64 -Wall -DPIC    -DUSE_MMX -DUSE_SSE -DUSE_SSE2 -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fPIC -I/usr/local/Cellar/libxml2/2.9.7/include/libxml2   -c"
+)
+
+target_include_directories( mltxml
+    PUBLIC
+    ${XML2_INCLUDE_DIRS}
+)
+
+target_link_libraries(mltxml
+    mlt
+    ${XML2_LDFLAGS}
+)
+
 add_executable(melt ${MELT_SRC_FILES} )
 
 target_include_directories( melt
@@ -240,6 +264,7 @@ target_link_libraries( melt
             core
             mltavformat
             mltsdl
+            mltxml
             ${SDL2_LDFLAGS}
             )
 
