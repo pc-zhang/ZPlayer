@@ -20,6 +20,7 @@ pkg_search_module(AVRESAMPLE REQUIRED libavresample)
 pkg_search_module(AVDEVICE REQUIRED libavdevice)
 pkg_search_module(AVFILTER REQUIRED libavfilter)
 pkg_search_module(SWSCALE REQUIRED libswscale)
+pkg_search_module(SWRESAMPLE REQUIRED libswresample)
 
 set(FRAMEWORK_SRC_FILES
     src/framework/mlt_frame.c
@@ -268,3 +269,23 @@ target_link_libraries( melt
             ${SDL2_LDFLAGS}
             )
 
+add_executable(ffplay src/melt/ffplay.c src/melt/cmdutils.c )
+
+target_include_directories( ffplay
+
+    PUBLIC
+
+    ${SDL2_INCLUDE_DIRS}
+)
+
+target_link_libraries( ffplay
+
+        mlt
+        mlt++
+        core
+        mltavformat
+        mltsdl
+        mltxml
+        ${SDL2_LDFLAGS}
+        ${SWRESAMPLE_LDFLAGS}
+)
