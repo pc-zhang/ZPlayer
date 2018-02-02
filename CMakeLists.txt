@@ -275,17 +275,52 @@ target_include_directories( ffplay
 
     PUBLIC
 
+    ${AVCODEC_INCLUDE_DIRS}
+    ${AVFORMAT_INCLUDE_DIRS}
+    ${AVUTIL_INCLUDE_DIRS}
+    ${AVRESAMPLE_INCLUDE_DIRS}
+    ${AVDEVICE_INCLUDE_DIRS}
+    ${AVFILTER_INCLUDE_DIRS}
+    ${SWSCALE_INCLUDE_DIRS}
     ${SDL2_INCLUDE_DIRS}
 )
 
 target_link_libraries( ffplay
 
-        mlt
-        mlt++
-        core
-        mltavformat
-        mltsdl
-        mltxml
-        ${SDL2_LDFLAGS}
-        ${SWRESAMPLE_LDFLAGS}
+    ${SDL2_LDFLAGS}
+    ${AVCODEC_LDFLAGS}
+    ${AVFORMAT_LDFLAGS}
+    ${AVUTIL_LDFLAGS}
+    ${AVRESAMPLE_LDFLAGS}
+    ${AVDEVICE_LDFLAGS}
+    ${AVFILTER_LDFLAGS}
+    ${SWSCALE_LDFLAGS}
+    ${SWRESAMPLE_LDFLAGS}
+)
+
+add_executable(ffprobe src/melt/ffprobe.c src/melt/cmdutils.c )
+
+target_include_directories( ffprobe
+
+    PUBLIC
+
+    ${AVCODEC_INCLUDE_DIRS}
+    ${AVFORMAT_INCLUDE_DIRS}
+    ${AVUTIL_INCLUDE_DIRS}
+    ${AVRESAMPLE_INCLUDE_DIRS}
+    ${AVDEVICE_INCLUDE_DIRS}
+    ${AVFILTER_INCLUDE_DIRS}
+    ${SWSCALE_INCLUDE_DIRS}
+)
+
+target_link_libraries( ffprobe
+
+    ${AVCODEC_LDFLAGS}
+    ${AVFORMAT_LDFLAGS}
+    ${AVUTIL_LDFLAGS}
+    ${AVRESAMPLE_LDFLAGS}
+    ${AVDEVICE_LDFLAGS}
+    ${AVFILTER_LDFLAGS}
+    ${SWSCALE_LDFLAGS}
+    ${SWRESAMPLE_LDFLAGS}
 )
