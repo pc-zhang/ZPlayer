@@ -325,7 +325,7 @@ target_link_libraries( ffprobe
     ${SWRESAMPLE_LDFLAGS}
 )
 
-add_executable(ZPlayer src/melt/ZPlayer.cpp src/melt/cmdutils.c )
+add_executable(ZPlayer src/melt/ZPlayer.cpp)
 
 target_include_directories( ZPlayer
 

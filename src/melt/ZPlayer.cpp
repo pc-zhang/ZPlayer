@@ -1,28 +1,3 @@
-/*
- * Copyright (c) 2003 Fabrice Bellard
- *
- * This file is part of FFmpeg.
- *
- * FFmpeg is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * FFmpeg is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with FFmpeg; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
- */
-
-/**
- * @file
- * simple media player based on the FFmpeg libraries
- */
-
 #include "config.h"
 #include <inttypes.h>
 #include <math.h>
@@ -50,8 +25,6 @@ extern "C" {
 
 #include <SDL.h>
 #include <SDL_thread.h>
-
-#include "cmdutils.h"
 }
 #include <assert.h>
 
@@ -295,18 +268,14 @@ typedef struct VideoState {
 
 /* options specified by the user */
 static AVInputFormat *file_iformat;
-static const char *input_filename;
+static const char *input_filename = "/Users/zpc/Desktop/ttvideo1.mp4";
 static const char *window_title;
 static int default_width  = 640;
 static int default_height = 480;
 static int screen_width  = 0;
 static int screen_height = 0;
-static int audio_disable;
-static int video_disable;
-static int subtitle_disable;
 static const char* wanted_stream_spec[AVMEDIA_TYPE_NB] = {0};
 static int seek_by_bytes = -1;
-static int display_disable;
 static int borderless;
 static int startup_volume = 100;
 static int show_status = 1;
@@ -1258,7 +1227,6 @@ static void do_exit(VideoState *is)
         SDL_DestroyRenderer(renderer);
     if (window)
         SDL_DestroyWindow(window);
-    uninit_opts();
 
     avformat_network_deinit();
     if (show_status)
@@ -1534,7 +1502,7 @@ static void video_refresh(void *opaque, double *remaining_time)
     if (!is->paused && get_master_sync_type(is) == AV_SYNC_EXTERNAL_CLOCK && is->realtime)
         check_external_clock_speed(is);
 
-    if (!display_disable && is->show_mode != SHOW_MODE_VIDEO && is->audio_st) {
+    if (is->show_mode != SHOW_MODE_VIDEO && is->audio_st) {
         time = av_gettime_relative() / 1000000.0;
         if (is->force_refresh || is->last_vis_time + rdftspeed < time) {
             video_display(is);
@@ -1637,7 +1605,7 @@ retry:
         }
 display:
         /* display picture */
-        if (!display_disable && is->force_refresh && is->show_mode == SHOW_MODE_VIDEO && is->pictq.rindex_shown)
+        if (is->force_refresh && is->show_mode == SHOW_MODE_VIDEO && is->pictq.rindex_shown)
             video_display(is);
     }
     is->force_refresh = 0;
@@ -2217,7 +2185,6 @@ static int stream_component_open(VideoState *is, int stream_index)
     if (fast)
         avctx->flags2 |= AV_CODEC_FLAG2_FAST;
 
-    opts = filter_codec_opts(codec_opts, avctx->codec_id, ic, ic->streams[stream_index], codec);
     if (!av_dict_get(opts, "threads", NULL, 0))
         av_dict_set(&opts, "threads", "auto", 0);
     if (stream_lowres)
@@ -2362,20 +2329,16 @@ static int read_thread(void *arg)
     }
     ic->interrupt_callback.callback = decode_interrupt_cb;
     ic->interrupt_callback.opaque = is;
-    if (!av_dict_get(format_opts, "scan_all_pmts", NULL, AV_DICT_MATCH_CASE)) {
-        av_dict_set(&format_opts, "scan_all_pmts", "1", AV_DICT_DONT_OVERWRITE);
+    if (true) {
         scan_all_pmts_set = 1;
     }
-    err = avformat_open_input(&ic, is->filename, is->iformat, &format_opts);
+    err = avformat_open_input(&ic, is->filename, is->iformat, NULL);
     if (err < 0) {
-        print_error(is->filename, err);
         ret = -1;
         goto fail;
     }
-    if (scan_all_pmts_set)
-        av_dict_set(&format_opts, "scan_all_pmts", NULL, AV_DICT_MATCH_CASE);
-
-    if ((t = av_dict_get(format_opts, "", NULL, AV_DICT_IGNORE_SUFFIX))) {
+    
+    if (false) {
         av_log(NULL, AV_LOG_ERROR, "Option %s not found.\n", t->key);
         ret = AVERROR_OPTION_NOT_FOUND;
         goto fail;
@@ -2388,14 +2351,10 @@ static int read_thread(void *arg)
     av_format_inject_global_side_data(ic);
 
     if (find_stream_info) {
-        AVDictionary **opts = setup_find_stream_info_opts(ic, codec_opts);
+        AVDictionary **opts = NULL;
         int orig_nb_streams = ic->nb_streams;
 
         err = avformat_find_stream_info(ic, opts);
-
-        for (i = 0; i < orig_nb_streams; i++)
-            av_dict_free(&opts[i]);
-        av_freep(&opts);
 
         if (err < 0) {
             av_log(NULL, AV_LOG_WARNING,
@@ -2451,18 +2410,17 @@ static int read_thread(void *arg)
         }
     }
 
-    if (!video_disable)
         st_index[AVMEDIA_TYPE_VIDEO] =
             av_find_best_stream(ic, AVMEDIA_TYPE_VIDEO,
                                 st_index[AVMEDIA_TYPE_VIDEO], -1, NULL, 0);
-    if (!audio_disable)
-        st_index[AVMEDIA_TYPE_AUDIO] =
+
+    st_index[AVMEDIA_TYPE_AUDIO] =
             av_find_best_stream(ic, AVMEDIA_TYPE_AUDIO,
                                 st_index[AVMEDIA_TYPE_AUDIO],
                                 st_index[AVMEDIA_TYPE_VIDEO],
                                 NULL, 0);
-    if (!video_disable && !subtitle_disable)
-        st_index[AVMEDIA_TYPE_SUBTITLE] =
+
+    st_index[AVMEDIA_TYPE_SUBTITLE] =
             av_find_best_stream(ic, AVMEDIA_TYPE_SUBTITLE,
                                 st_index[AVMEDIA_TYPE_SUBTITLE],
                                 (st_index[AVMEDIA_TYPE_AUDIO] >= 0 ?
@@ -3037,24 +2995,6 @@ static void event_loop(VideoState *cur_stream)
     }
 }
 
-static int opt_frame_size(void *optctx, const char *opt, const char *arg)
-{
-    av_log(NULL, AV_LOG_WARNING, "Option -s is deprecated, use -video_size.\n");
-    return opt_default(NULL, "video_size", arg);
-}
-
-static int opt_width(void *optctx, const char *opt, const char *arg)
-{
-    screen_width = parse_number_or_die(opt, arg, OPT_INT64, 1, INT_MAX);
-    return 0;
-}
-
-static int opt_height(void *optctx, const char *opt, const char *arg)
-{
-    screen_height = parse_number_or_die(opt, arg, OPT_INT64, 1, INT_MAX);
-    return 0;
-}
-
 static int opt_format(void *optctx, const char *opt, const char *arg)
 {
     file_iformat = av_find_input_format(arg);
@@ -3063,12 +3003,6 @@ static int opt_format(void *optctx, const char *opt, const char *arg)
         return AVERROR(EINVAL);
     }
     return 0;
-}
-
-static int opt_frame_pix_fmt(void *optctx, const char *opt, const char *arg)
-{
-    av_log(NULL, AV_LOG_WARNING, "Option -pix_fmt is deprecated, use -pixel_format.\n");
-    return opt_default(NULL, "pixel_format", arg);
 }
 
 static int opt_sync(void *optctx, const char *opt, const char *arg)
@@ -3086,26 +3020,6 @@ static int opt_sync(void *optctx, const char *opt, const char *arg)
     return 0;
 }
 
-static int opt_seek(void *optctx, const char *opt, const char *arg)
-{
-    start_time = parse_time_or_die(opt, arg, 1);
-    return 0;
-}
-
-static int opt_duration(void *optctx, const char *opt, const char *arg)
-{
-    duration = parse_time_or_die(opt, arg, 1);
-    return 0;
-}
-
-static int opt_show_mode(void *optctx, const char *opt, const char *arg)
-{
-    show_mode = !strcmp(arg, "video") ? SHOW_MODE_VIDEO :
-                !strcmp(arg, "waves") ? SHOW_MODE_WAVES :
-                !strcmp(arg, "rdft" ) ? SHOW_MODE_RDFT  :
-                (ShowMode)parse_number_or_die(opt, arg, OPT_INT, 0, SHOW_MODE_NB-1);
-    return 0;
-}
 
 static void opt_input_file(void *optctx, const char *filename)
 {
@@ -3144,143 +3058,29 @@ static int opt_codec(void *optctx, const char *opt, const char *arg)
 
 static int dummy;
 
-static const OptionDef options[] = {
-    CMDUTILS_COMMON_OPTIONS
-    { "x", HAS_ARG, { .func_arg = opt_width }, "force displayed width", "width" },
-    { "y", HAS_ARG, { .func_arg = opt_height }, "force displayed height", "height" },
-    { "s", HAS_ARG | OPT_VIDEO, { .func_arg = opt_frame_size }, "set frame size (WxH or abbreviation)", "size" },
-    { "fs", OPT_BOOL, { &is_full_screen }, "force full screen" },
-    { "an", OPT_BOOL, { &audio_disable }, "disable audio" },
-    { "vn", OPT_BOOL, { &video_disable }, "disable video" },
-    { "sn", OPT_BOOL, { &subtitle_disable }, "disable subtitling" },
-    { "ast", OPT_STRING | HAS_ARG | OPT_EXPERT, { &wanted_stream_spec[AVMEDIA_TYPE_AUDIO] }, "select desired audio stream", "stream_specifier" },
-    { "vst", OPT_STRING | HAS_ARG | OPT_EXPERT, { &wanted_stream_spec[AVMEDIA_TYPE_VIDEO] }, "select desired video stream", "stream_specifier" },
-    { "sst", OPT_STRING | HAS_ARG | OPT_EXPERT, { &wanted_stream_spec[AVMEDIA_TYPE_SUBTITLE] }, "select desired subtitle stream", "stream_specifier" },
-    { "ss", HAS_ARG, { .func_arg = opt_seek }, "seek to a given position in seconds", "pos" },
-    { "t", HAS_ARG, { .func_arg = opt_duration }, "play  \"duration\" seconds of audio/video", "duration" },
-    { "bytes", OPT_INT | HAS_ARG, { &seek_by_bytes }, "seek by bytes 0=off 1=on -1=auto", "val" },
-    { "nodisp", OPT_BOOL, { &display_disable }, "disable graphical display" },
-    { "noborder", OPT_BOOL, { &borderless }, "borderless window" },
-    { "volume", OPT_INT | HAS_ARG, { &startup_volume}, "set startup volume 0=min 100=max", "volume" },
-    { "f", HAS_ARG, { .func_arg = opt_format }, "force format", "fmt" },
-    { "pix_fmt", HAS_ARG | OPT_EXPERT | OPT_VIDEO, { .func_arg = opt_frame_pix_fmt }, "set pixel format", "format" },
-    { "stats", OPT_BOOL | OPT_EXPERT, { &show_status }, "show status", "" },
-    { "fast", OPT_BOOL | OPT_EXPERT, { &fast }, "non spec compliant optimizations", "" },
-    { "genpts", OPT_BOOL | OPT_EXPERT, { &genpts }, "generate pts", "" },
-    { "drp", OPT_INT | HAS_ARG | OPT_EXPERT, { &decoder_reorder_pts }, "let decoder reorder pts 0=off 1=on -1=auto", ""},
-    { "lowres", OPT_INT | HAS_ARG | OPT_EXPERT, { &lowres }, "", "" },
-    { "sync", HAS_ARG | OPT_EXPERT, { .func_arg = opt_sync }, "set audio-video sync. type (type=audio/video/ext)", "type" },
-    { "autoexit", OPT_BOOL | OPT_EXPERT, { &autoexit }, "exit at the end", "" },
-    { "exitonkeydown", OPT_BOOL | OPT_EXPERT, { &exit_on_keydown }, "exit on key down", "" },
-    { "exitonmousedown", OPT_BOOL | OPT_EXPERT, { &exit_on_mousedown }, "exit on mouse down", "" },
-    { "loop", OPT_INT | HAS_ARG | OPT_EXPERT, { &loop }, "set number of times the playback shall be looped", "loop count" },
-    { "framedrop", OPT_BOOL | OPT_EXPERT, { &framedrop }, "drop frames when cpu is too slow", "" },
-    { "infbuf", OPT_BOOL | OPT_EXPERT, { &infinite_buffer }, "don't limit the input buffer size (useful with realtime streams)", "" },
-    { "window_title", OPT_STRING | HAS_ARG, { &window_title }, "set window title", "window title" },
-
-    { "rdftspeed", OPT_INT | HAS_ARG| OPT_AUDIO | OPT_EXPERT, { &rdftspeed }, "rdft speed", "msecs" },
-    { "showmode", HAS_ARG, { .func_arg = opt_show_mode}, "select show mode (0 = video, 1 = waves, 2 = RDFT)", "mode" },
-    { "default", HAS_ARG | OPT_AUDIO | OPT_VIDEO | OPT_EXPERT, { .func_arg = opt_default }, "generic catch all option", "" },
-    { "i", OPT_BOOL, { &dummy}, "read specified file", "input_file"},
-    { "codec", HAS_ARG, { .func_arg = opt_codec}, "force decoder", "decoder_name" },
-    { "acodec", HAS_ARG | OPT_STRING | OPT_EXPERT, {    &audio_codec_name }, "force audio decoder",    "decoder_name" },
-    { "scodec", HAS_ARG | OPT_STRING | OPT_EXPERT, { &subtitle_codec_name }, "force subtitle decoder", "decoder_name" },
-    { "vcodec", HAS_ARG | OPT_STRING | OPT_EXPERT, {    &video_codec_name }, "force video decoder",    "decoder_name" },
-    { "autorotate", OPT_BOOL, { &autorotate }, "automatically rotate video", "" },
-    { "find_stream_info", OPT_BOOL | OPT_INPUT | OPT_EXPERT, { &find_stream_info },
-        "read and decode the streams to fill missing information with heuristics" },
-    { NULL, },
-};
-
-static void show_usage(void)
-{
-    av_log(NULL, AV_LOG_INFO, "Simple media player\n");
-    av_log(NULL, AV_LOG_INFO, "usage: %s [options] input_file\n", program_name);
-    av_log(NULL, AV_LOG_INFO, "\n");
-}
-
-void show_help_default(const char *opt, const char *arg)
-{
-    av_log_set_callback(log_callback_help);
-    show_usage();
-    show_help_options(options, "Main options:", 0, OPT_EXPERT, 0);
-    show_help_options(options, "Advanced options:", OPT_EXPERT, 0, 0);
-    printf("\n");
-//    show_help_children(avcodec_get_class(), AV_OPT_FLAG_DECODING_PARAM);
-//    show_help_children(avformat_get_class(), AV_OPT_FLAG_DECODING_PARAM);
-//    show_help_children(avfilter_get_class(), AV_OPT_FLAG_FILTERING_PARAM);
-
-    printf("\nWhile playing:\n"
-           "q, ESC              quit\n"
-           "f                   toggle full screen\n"
-           "p, SPC              pause\n"
-           "m                   toggle mute\n"
-           "9, 0                decrease and increase volume respectively\n"
-           "/, *                decrease and increase volume respectively\n"
-           "a                   cycle audio channel in the current program\n"
-           "v                   cycle video channel\n"
-           "t                   cycle subtitle channel in the current program\n"
-           "c                   cycle program\n"
-           "w                   cycle video filters or show modes\n"
-           "s                   activate frame-step mode\n"
-           "left/right          seek backward/forward 10 seconds\n"
-           "down/up             seek backward/forward 1 minute\n"
-           "page down/page up   seek backward/forward 10 minutes\n"
-           "right mouse click   seek to percentage in file corresponding to fraction of width\n"
-           "left double-click   toggle full screen\n"
-           );
-}
-
 /* Called from the main */
 int main(int argc, char **argv)
 {
     int flags;
     VideoState *is;
 
-    init_dynload();
-
     av_log_set_flags(AV_LOG_SKIP_REPEATED);
-    parse_loglevel(argc, argv, options);
-
-    /* register all codecs, demux and protocols */
-#if CONFIG_AVDEVICE
-    avdevice_register_all();
-#endif
 
     av_register_all();
     avformat_network_init();
 
-    init_opts();
-
     signal(SIGINT , sigterm_handler); /* Interrupt (ANSI).    */
     signal(SIGTERM, sigterm_handler); /* Termination (ANSI).  */
 
-    show_banner(argc, argv, options);
-
-    parse_options(NULL, argc, argv, options, opt_input_file);
-
-    if (!input_filename) {
-        show_usage();
-        av_log(NULL, AV_LOG_FATAL, "An input file must be specified\n");
-        av_log(NULL, AV_LOG_FATAL,
-               "Use -h to get full help or, even better, run 'man %s'\n", program_name);
-        exit(1);
-    }
-
-    if (display_disable) {
-        video_disable = 1;
-    }
     flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER;
-    if (audio_disable)
-        flags &= ~SDL_INIT_AUDIO;
-    else {
+    
+    {
         /* Try to work around an occasional ALSA buffer underflow issue when the
          * period size is NPOT due to ALSA resampling by forcing the buffer size. */
         if (!SDL_getenv("SDL_AUDIO_ALSA_SET_BUFFER_SIZE"))
             SDL_setenv("SDL_AUDIO_ALSA_SET_BUFFER_SIZE","1", 1);
     }
-    if (display_disable)
-        flags &= ~SDL_INIT_VIDEO;
+    
     if (SDL_Init (flags)) {
         av_log(NULL, AV_LOG_FATAL, "Could not initialize SDL - %s\n", SDL_GetError());
         av_log(NULL, AV_LOG_FATAL, "(Did you set the DISPLAY variable?)\n");
@@ -3293,7 +3093,7 @@ int main(int argc, char **argv)
     av_init_packet(&flush_pkt);
     flush_pkt.data = (uint8_t *)&flush_pkt;
 
-    if (!display_disable) {
+    {
         int flags = SDL_WINDOW_HIDDEN;
         if (borderless)
             flags |= SDL_WINDOW_BORDERLESS;
