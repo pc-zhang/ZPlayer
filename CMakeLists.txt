@@ -324,3 +324,32 @@ target_link_libraries( ffprobe
     ${SWSCALE_LDFLAGS}
     ${SWRESAMPLE_LDFLAGS}
 )
+
+add_executable(ZPlayer src/melt/ZPlayer.cpp src/melt/cmdutils.c )
+
+target_include_directories( ZPlayer
+
+    PUBLIC
+
+    ${AVCODEC_INCLUDE_DIRS}
+    ${AVFORMAT_INCLUDE_DIRS}
+    ${AVUTIL_INCLUDE_DIRS}
+    ${AVRESAMPLE_INCLUDE_DIRS}
+    ${AVDEVICE_INCLUDE_DIRS}
+    ${AVFILTER_INCLUDE_DIRS}
+    ${SWSCALE_INCLUDE_DIRS}
+    ${SDL2_INCLUDE_DIRS}
+)
+
+target_link_libraries( ZPlayer
+
+    ${SDL2_LDFLAGS}
+    ${AVCODEC_LDFLAGS}
+    ${AVFORMAT_LDFLAGS}
+    ${AVUTIL_LDFLAGS}
+    ${AVRESAMPLE_LDFLAGS}
+    ${AVDEVICE_LDFLAGS}
+    ${AVFILTER_LDFLAGS}
+    ${SWSCALE_LDFLAGS}
+    ${SWRESAMPLE_LDFLAGS}
+)
