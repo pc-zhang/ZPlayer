@@ -1,4 +1,3 @@
-#include "config.h"
 #include <inttypes.h>
 #include <math.h>
 #include <limits.h>
@@ -268,7 +267,7 @@ typedef struct VideoState {
 
 /* options specified by the user */
 static AVInputFormat *file_iformat;
-static const char *input_filename = "/Users/zpc/Desktop/ttvideo1.mp4";
+static const char *input_filename = "/Users/zhangpengcheng/Desktop/ttvideo1.mp4";
 static const char *window_title;
 static int default_width  = 640;
 static int default_height = 480;
