@@ -1,6 +1,0 @@
-f=matroska
-acodec=flac
-vcodec=huffyuv
-
-meta.preset.extension=mkv
-meta.preset.note=with FLAC audio in Matroska container

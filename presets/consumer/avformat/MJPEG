@@ -1,7 +1,0 @@
-f=avi
-vcodec=mjpeg
-qscale=4
-acodec=libmp3lame
-ab=256k
-
-meta.preset.extension=avi
