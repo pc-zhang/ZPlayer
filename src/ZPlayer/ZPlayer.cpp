@@ -24,7 +24,8 @@ extern "C" {
 
 #include <SDL.h>
 #include <SDL_thread.h>
-}
+};
+
 #include <assert.h>
 
 const char program_name[] = "ffplay";
@@ -267,7 +268,7 @@ typedef struct VideoState {
 
 /* options specified by the user */
 static AVInputFormat *file_iformat;
-static const char *input_filename = "/Users/zhangpengcheng/Desktop/ttvideo1.mp4";
+static const char *input_filename = "https://aweme.snssdk.com/aweme/v1/playwm/?video_id=54a1da191aa940459e4c21e919e62309&line=0";
 static const char *window_title;
 static int default_width  = 640;
 static int default_height = 480;
@@ -549,7 +550,7 @@ static int decoder_decode_frame(Decoder *d, AVFrame *frame, AVSubtitle *sub) {
                     case AVMEDIA_TYPE_AUDIO:
                         ret = avcodec_receive_frame(d->avctx, frame);
                         if (ret >= 0) {
-                            AVRational tb = (AVRational){1, frame->sample_rate};
+                            AVRational tb = {1, frame->sample_rate};
                             if (frame->pts != AV_NOPTS_VALUE)
                                 frame->pts = av_rescale_q(frame->pts, d->avctx->pkt_timebase, tb);
                             else if (d->next_pts != AV_NOPTS_VALUE)
@@ -1082,7 +1083,7 @@ static void video_audio_display(VideoState *s)
             s->show_mode = SHOW_MODE_WAVES;
         } else {
             FFTSample *data[2];
-            SDL_Rect rect = {.x = s->xpos, .y = 0, .w = 1, .h = s->height};
+            SDL_Rect rect = { s->xpos, 0, 1, s->height};
             uint32_t *pixels;
             int pitch;
             for (ch = 0; ch < nb_display_channels; ch++) {
@@ -1633,7 +1634,7 @@ display:
             else if (is->audio_st)
                 av_diff = get_master_clock(is) - get_clock(&is->audclk);
             av_log(NULL, AV_LOG_INFO,
-                   "%7.2f %s:%7.3f fd=%4d aq=%5dKB vq=%5dKB sq=%5dB f=%"PRId64"/%"PRId64"   \r",
+                   "%7.2f %s:%7.3f fd=%4d aq=%5dKB vq=%5dKB sq=%5dB f=%d/%d   \r",
                    get_master_clock(is),
                    (is->audio_st && is->video_st) ? "A-V" : (is->video_st ? "M-V" : (is->audio_st ? "M-A" : "   ")),
                    av_diff,
@@ -1732,7 +1733,7 @@ static int audio_thread(void *arg)
             goto the_end;
 
         if (got_frame) {
-                tb = (AVRational){1, frame->sample_rate};
+                tb = {1, frame->sample_rate};
 
                 if (!(af = frame_queue_peek_writable(&is->sampq)))
                     goto the_end;
@@ -1740,7 +1741,7 @@ static int audio_thread(void *arg)
                 af->pts = (frame->pts == AV_NOPTS_VALUE) ? NAN : frame->pts * av_q2d(tb);
                 af->pos = frame->pkt_pos;
                 af->serial = is->auddec.pkt_serial;
-                af->duration = av_q2d((AVRational){frame->nb_samples, frame->sample_rate});
+                af->duration = av_q2d({frame->nb_samples, frame->sample_rate});
 
                 av_frame_move_ref(af->frame, frame);
                 frame_queue_push(&is->sampq);
@@ -1784,7 +1785,7 @@ static int video_thread(void *arg)
         if (!ret)
             continue;
 
-            duration = (frame_rate.num && frame_rate.den ? av_q2d((AVRational){frame_rate.den, frame_rate.num}) : 0);
+            duration = (frame_rate.num && frame_rate.den ? av_q2d({frame_rate.den, frame_rate.num}) : 0);
             pts = (frame->pts == AV_NOPTS_VALUE) ? NAN : frame->pts * av_q2d(tb);
             ret = queue_picture(is, frame, pts, duration, frame->pkt_pos, is->viddec.pkt_serial);
             av_frame_unref(frame);
@@ -2787,7 +2788,7 @@ static void seek_chapter(VideoState *is, int incr)
     /* find the current chapter */
     for (i = 0; i < is->ic->nb_chapters; i++) {
         AVChapter *ch = is->ic->chapters[i];
-        if (av_compare_ts(pos, AV_TIME_BASE_Q, ch->start, ch->time_base) < 0) {
+		if (av_compare_ts(pos, {1, AV_TIME_BASE }, ch->start, ch->time_base) < 0) {
             i--;
             break;
         }
@@ -2800,7 +2801,7 @@ static void seek_chapter(VideoState *is, int incr)
 
     av_log(NULL, AV_LOG_VERBOSE, "Seeking to chapter %d.\n", i);
     stream_seek(is, av_rescale_q(is->ic->chapters[i]->start, is->ic->chapters[i]->time_base,
-                                 AV_TIME_BASE_Q), 0, 0);
+		{1, AV_TIME_BASE }), 0, 0);
 }
 
 /* handle an event sent by the GUI */
