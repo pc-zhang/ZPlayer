@@ -1768,9 +1768,7 @@ static int video_thread(void *arg)
 {
     VideoState *is = (VideoState *)arg;
     AVFrame *frame = av_frame_alloc();
-    double pts;
-    double duration;
-    int ret;
+
     AVRational tb = is->video_st->time_base;
     AVRational frame_rate = av_guess_frame_rate(is->ic, is->video_st, NULL);
 
@@ -1779,16 +1777,16 @@ static int video_thread(void *arg)
     }
 
     for (;;) {
-        ret = get_video_frame(is, frame);
+        int ret = get_video_frame(is, frame);
         if (ret < 0)
             goto the_end;
         if (!ret)
             continue;
 
-            duration = (frame_rate.num && frame_rate.den ? av_q2d({frame_rate.den, frame_rate.num}) : 0);
-            pts = (frame->pts == AV_NOPTS_VALUE) ? NAN : frame->pts * av_q2d(tb);
-            ret = queue_picture(is, frame, pts, duration, frame->pkt_pos, is->viddec.pkt_serial);
-            av_frame_unref(frame);
+        double duration = (frame_rate.num && frame_rate.den ? av_q2d({frame_rate.den, frame_rate.num}) : 0);
+        double pts = (frame->pts == AV_NOPTS_VALUE) ? NAN : frame->pts * av_q2d(tb);
+        ret = queue_picture(is, frame, pts, duration, frame->pkt_pos, is->viddec.pkt_serial);
+        av_frame_unref(frame);
 
         if (ret < 0)
             goto the_end;
